@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import shutil
 
 #Variables Globales
 #Especies ya almacenadas en el dataset, para evitar duplicados
@@ -66,6 +67,23 @@ def make_yaml():
     #Escribir el archivo Yaml en la carpeta del dataset
     write_file(os.path.join(base_dir, 'dataset', 'uppa','uppa.yaml'), content_yaml)
 
+def make_notes():
+    content_notes = '{ \n' \
+    '"categories:": [\n' \
+    
+    for sp in stored_species:
+        content_notes += f'{{"id": {stored_species.index(sp)}, "name": "{sp}"}}'
+        if stored_species.index(sp) != len(stored_species)-1:
+            content_notes += ','
+        content_notes += '\n'
+    content_notes += ']\n}'
+    write_file(os.path.join(base_dir, 'dataset', 'uppa','notes.json'), content_notes)
+
+def make_classes():
+    content_classes = ''
+    for sp in stored_species:
+        content_classes += f"{sp}\n"
+    write_file(os.path.join(base_dir, 'dataset', 'uppa','classes.txt'), content_classes)
 #Funcion para la creacion de archivos Txt para cada imagen, con su respectiva etiqueta, con la estructura requerida por Ultralytics
 def make_txt(path, species):
     content_txt = f"{stored_species.index(species)} 0.5 0.5 1 1"
@@ -91,7 +109,7 @@ def move_images(path_source, path_dst):
         if img.endswith('.JPG'):
             src = os.path.join(path_source, img)
             dst = os.path.join(path_dst, img)
-            os.rename(src, dst)
+            shutil.copy2(src, dst)
 #main
 mk_folders()
 #inicializar Csv's 
@@ -104,6 +122,10 @@ add_species(train_data['species'].unique())
 add_species(val_data['species'].unique())
 #Creacion de archivo Yaml
 make_yaml()
+#Creacion de archivo classes
+make_classes()
+#Creacion de archivo notes
+make_notes()
 #Creacion de archivos Txt para cada imagen, con su respectiva etiqueta
 make_txts(test_data, test_pic, os.path.join(base_dir, 'dataset', 'uppa','labels','test'))
 make_txts(train_data, train_pic, os.path.join(base_dir, 'dataset', 'uppa','labels','train'))
